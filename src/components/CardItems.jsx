@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
-import "./carditems.css";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { FaTrash } from "react-icons/fa";
+
+import "./carditems.css";
 
 const CardItems = () => {
   const [items, setItems] = useState([]);
@@ -24,20 +27,31 @@ const CardItems = () => {
   };
 
   return (
-    <div>
-      {items.map((item) => (
-        <div
-          key={item.id}
-        >
-          <h3>{item.title}</h3>
-          <p>{item.body}</p>
-          <button
-            onClick={() => handleDelete(item.id)}
-          >
-            delete
-          </button>
-        </div>
-      ))}
+    <div className="container">
+      <div className="card-list">
+        <AnimatePresence>
+          {items.map((item) => (
+            <motion.div
+              key={item.id}
+              className="card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <button
+                className="delete-btn"
+                onClick={() => handleDelete(item.id)}
+                aria-label="Delete item"
+              >
+                <FaTrash />
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
