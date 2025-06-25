@@ -12,6 +12,7 @@ const CardItems = () => {
     title: "",
     body: ""
   });
+  const [deletingCardId, setDeletingCardId] = useState(null);
 
   useEffect(() => {
     axios
@@ -21,6 +22,12 @@ const CardItems = () => {
   }, []);
 
   const handleDelete = async (id) => {
+    if (deletingCardId) {
+      return;
+    }
+
+    setDeletingCardId(id);
+    
     try {
       await axios.delete(
         `https://6301a75d9a1035c7f804ccb5.mockapi.io/CardDetails/${id}`
@@ -28,6 +35,10 @@ const CardItems = () => {
       setItems((prevItems) => prevItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting item:", error);
+    } finally {
+      setTimeout(() => {
+        setDeletingCardId(null);
+      }, 500);
     }
   };
 
@@ -83,8 +94,9 @@ const CardItems = () => {
               <h3>{item.title}</h3>
               <p>{item.body}</p>
               <button
-                className="delete-btn"
+                className={`delete-btn ${deletingCardId === item.id ? 'disabled' : ''}`}
                 onClick={() => handleDelete(item.id)}
+                disabled={deletingCardId === item.id}
                 aria-label="Delete item"
               >
                 <FaTrash />
