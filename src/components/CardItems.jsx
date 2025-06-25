@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
 
 import "./carditems.css";
 
 const CardItems = () => {
   const [items, setItems] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newItemData, setNewItemData] = useState({
+    title: "",
+    body: ""
+  });
 
   useEffect(() => {
     axios
@@ -17,22 +22,46 @@ const CardItems = () => {
 
   const handleDelete = async (id) => {
     try {
-      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
       await axios.delete(
         `https://6301a75d9a1035c7f804ccb5.mockapi.io/CardDetails/${id}`
       );
+      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting item:", error);
     }
   };
 
   const handleAdd = () => {
-    const newItem = {
-      id: Date.now(),
-      title: "New Item",
-      body: "This is a new dynamically added item.",
-    };
-    setItems((prevItems) => [newItem, ...prevItems]);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!newItemData.title.trim() || !newItemData.body.trim()) {
+      alert("Please fill in both title and description fields");
+      return;
+    }
+
+    try {
+      const response = await axios.post("https://6301a75d9a1035c7f804ccb5.mockapi.io/CardDetails", newItemData);
+      setItems((prevItems) => [response.data, ...prevItems]);
+      setNewItemData({ title: "", body: "" });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error adding item:", error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setNewItemData({ title: "", body: "" });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewItemData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -64,6 +93,68 @@ const CardItems = () => {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              className="modal"
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2>Add New Item</h2>
+                <button className="close-btn" onClick={handleCloseModal}>
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="title">Title</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={newItemData.title}
+                    onChange={handleInputChange}
+                    placeholder="Enter title"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="body">Description</label>
+                  <textarea
+                    id="body"
+                    name="body"
+                    value={newItemData.body}
+                    onChange={handleInputChange}
+                    placeholder="Enter description"
+                    rows="4"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="cancel-btn" onClick={handleCloseModal}>
+                  Cancel
+                </button>
+                <button className="submit-btn" onClick={handleSubmit}>
+                  Add Item
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
