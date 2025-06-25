@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 
 import "./carditems.css";
 
@@ -17,17 +17,29 @@ const CardItems = () => {
 
   const handleDelete = async (id) => {
     try {
+      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
       await axios.delete(
         `https://6301a75d9a1035c7f804ccb5.mockapi.io/CardDetails/${id}`
       );
-      setItems((prevItems) => prevItems.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting item:", error);
     }
   };
 
+  const handleAdd = () => {
+    const newItem = {
+      id: Date.now(),
+      title: "New Item",
+      body: "This is a new dynamically added item.",
+    };
+    setItems((prevItems) => [newItem, ...prevItems]);
+  };
+
   return (
     <div className="container">
+      <button className="add-btn" onClick={handleAdd}>
+        <FaPlus style={{ marginRight: '8px' }} /> Add New Item
+      </button>
       <div className="card-list">
         <AnimatePresence>
           {items.map((item) => (
